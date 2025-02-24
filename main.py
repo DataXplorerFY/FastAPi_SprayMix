@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pymongo.mongo_client import MongoClient
@@ -85,6 +85,16 @@ def login(data: LoginRequest):
 
     return {"message": "Login successful."}
 
-# This code is prepared for deployment on Koyeb.
-# To run locally, use: `uvicorn <filename_without_py>.app:app --reload`
-# Ensure your environment variables are properly configured.
+@app.post("/delete_account")
+def delete_account(data: LoginRequest):
+    number = data.number
+    password = data.password
+
+    user = users_collection.find_one({"number": number})
+    
+    if not user or not verify_password(password, user["password"]):
+        raise HTTPException(status_code=401, detail="Invalid number or password.")
+
+    users_collection.delete_one({"number": number})
+    return {"message": "Account deleted successfully."}
+
